@@ -10,12 +10,18 @@ import { CacheService } from './cache.service';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: redisStore,
-        host: configService.get('REDIS_HOST', 'localhost'),
-        port: configService.get<number>('REDIS_PORT', 6379),
-        ttl: 60 * 10, // 10 minutos por defecto
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+        if (redisUrl) {
+          return { store: redisStore, url: redisUrl, ttl: 60 * 10 };
+        }
+        return {
+          store: redisStore,
+          host: configService.get('REDIS_HOST', 'localhost'),
+          port: configService.get<number>('REDIS_PORT', 6379),
+          ttl: 60 * 10,
+        };
+      },
     }),
   ],
   providers: [CacheService],
